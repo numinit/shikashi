@@ -151,6 +151,32 @@ describe Sandbox, "Shikashi sandbox" do
 
   end
 
+  class Context
+    def get_binding
+      binding
+    end
+  end
+
+  class ContextOne < Context
+  end
+
+  class ContextTwo < Context
+    def ` str
+      str.reverse
+    end
+  end
+
+  it "should execute xstr in the correct binding" do
+    s = Sandbox.new
+    priv = Privileges.new
+    priv.allow_xstr
+    ctx1, ctx2 = ContextOne.new, ContextTwo.new
+    cmd  = "echo hello world"
+    xstr = "%x[#{cmd}]"
+    s.run(xstr, priv, binding: ctx1.get_binding).should be == ctx1.get_binding.eval(xstr)
+    s.run(xstr, priv, binding: ctx2.get_binding).should be == ctx2.get_binding.eval(xstr)
+  end
+
   it "should not allow global variable read" do
     s = Sandbox.new
     priv = Privileges.new
